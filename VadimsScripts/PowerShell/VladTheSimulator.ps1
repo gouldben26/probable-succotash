@@ -54,11 +54,10 @@ Function Simulate-AVDetectionViaEICAR {
     $TargetIP
     )
     Write-Host "Performing AV Detection via EICAR on $TargetIP"
-    $Credential = Get-Credential
     Invoke-Command -ComputerName $TargetIP -Credential $Credential -ScriptBlock {
         Invoke-WebRequest "https://www.eicar.org/download/eicar.com.txt" -o ./sample.txt
+        notepad.exe ./sample.txt
     }
-    
 }
 
 Function Get-HostsFromCSV {
@@ -120,15 +119,16 @@ Note: This script is intented to be ran on a host targeting a windows machine on
 3. Simulate an AV Detection via EICAR. "
 
 $Option = Read-Host "Enter your choice"
-$TargetIP = Read-Host "Enter the target IP address"
-$TargetIPCSV = Read-Host "Enter the File Path of the targets CSV"
 
 If ($Option -eq 1) {
+    $TargetIP= Read-Host "Enter the target IP address"
     Simulate-PortScanning($TargetIP)
 }
 ElseIf ($Option -eq 2) {
+    $TargetIPCSV = Read-Host "Enter the File Path of the targets CSV"
     Simulate-BloodhoundStyleEnumeration($TargetIPCSV)
 }
 ElseIf ($Option -eq 3) {
+    $TargetIP= Read-Host "Enter the target IP address"
     Simulate-AVDetectionViaEICAR($TargetIP)
 }
