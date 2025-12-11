@@ -25,9 +25,8 @@ Function Simulate-BloodhoundStyleEnumeration {
         [Parameter(Mandatory = $true)]
         $TargetIPCSV
         )
-    
+    $TargetIPHosts = @()
     $TargetIPHosts = Get-HostsFromCSV $TargetIPCSV
-
     for ($i = 0; $i -lt $TargetIPHosts.Count; $i++) {
         Write-Host "Performing Bloodhound Style Enumeration on" $TargetIPHosts[$i] "via the IPC share"
     #SAMR Calls to enumerate local users and groups
@@ -74,13 +73,19 @@ Function Get-HostsFromCSV {
     $dataArray = @()
     try {
         $dataArray = Import-Csv -Path $CSVPath
+        for ($i = 0; $i -lt $dataarray.Count; $i++) {
+            Write-Host $dataArray[$i]
+            $dataArray[$i] = $dataArray[$i] -replace "@{IP=",""
+            $dataArray[$i] = $dataArray[$i] -replace "}",""
+            Write-Host $dataArray[$i]
+        }
         Write-Host "Successfully imported $($dataArray.Count) rows from $CSVPath"
     }
     catch {
         Write-Host "Failed to import CSV: $_"
         return $null
     }
-    return $HostArray
+    return $dataArray
 }
 
 Write-Host "                   .---------------------------------------------------.
@@ -116,12 +121,13 @@ Note: This script is intented to be ran on a host targeting a windows machine on
 
 $Option = Read-Host "Enter your choice"
 $TargetIP = Read-Host "Enter the target IP address"
+$TargetIPCSV = Read-Host "Enter the File Path of the targets CSV"
 
 If ($Option -eq 1) {
     Simulate-PortScanning($TargetIP)
 }
 ElseIf ($Option -eq 2) {
-    Simulate-BloodhoundStyleEnumeration($TargetIPRange)
+    Simulate-BloodhoundStyleEnumeration($TargetIPCSV)
 }
 ElseIf ($Option -eq 3) {
     Simulate-AVDetectionViaEICAR($TargetIP)
